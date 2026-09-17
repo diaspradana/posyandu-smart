@@ -1,0 +1,250 @@
+{
+  "model_name": "Logistic Regression",
+  "model_version": "stunting-v1.0",
+  "feature_columns": [
+    "umur_bulan",
+    "jenis_kelamin",
+    "berat_badan",
+    "tinggi_badan",
+    "lingkar_kepala",
+    "berat_lahir",
+    "asi_eksklusif"
+  ],
+  "target_classes": [
+    "normal",
+    "pemantauan",
+    "risiko_stunting"
+  ],
+  "benchmark_comparison": {
+    "Logistic Regression": {
+      "cv_f1_mean": 0.7349220438488786,
+      "accuracy": 0.84,
+      "precision": 0.7667494622158255,
+      "recall": 0.7237630935953804,
+      "f1_score": 0.7395261280153367,
+      "confusion_matrix": [
+        [
+          323,
+          8,
+          0
+        ],
+        [
+          39,
+          44,
+          15
+        ],
+        [
+          0,
+          18,
+          53
+        ]
+      ],
+      "classification_report": {
+        "normal": {
+          "precision": 0.8922651933701657,
+          "recall": 0.9758308157099698,
+          "f1-score": 0.9321789321789322,
+          "support": 331.0
+        },
+        "pemantauan": {
+          "precision": 0.6285714285714286,
+          "recall": 0.4489795918367347,
+          "f1-score": 0.5238095238095238,
+          "support": 98.0
+        },
+        "risiko_stunting": {
+          "precision": 0.7794117647058824,
+          "recall": 0.7464788732394366,
+          "f1-score": 0.762589928057554,
+          "support": 71.0
+        },
+        "accuracy": 0.84,
+        "macro avg": {
+          "precision": 0.7667494622158255,
+          "recall": 0.7237630935953804,
+          "f1-score": 0.7395261280153367,
+          "support": 500.0
+        },
+        "weighted avg": {
+          "precision": 0.824556028599285,
+          "recall": 0.84,
+          "f1-score": 0.8280568895532924,
+          "support": 500.0
+        }
+      }
+    },
+    "Random Forest": {
+      "cv_f1_mean": 0.661804800099392,
+      "accuracy": 0.824,
+      "precision": 0.7640503270424529,
+      "recall": 0.6854888502356391,
+      "f1_score": 0.7098438204425124,
+      "confusion_matrix": [
+        [
+          326,
+          4,
+          1
+        ],
+        [
+          50,
+          36,
+          12
+        ],
+        [
+          5,
+          16,
+          50
+        ]
+      ],
+      "classification_report": {
+        "normal": {
+          "precision": 0.8556430446194225,
+          "recall": 0.9848942598187311,
+          "f1-score": 0.9157303370786517,
+          "support": 331.0
+        },
+        "pemantauan": {
+          "precision": 0.6428571428571429,
+          "recall": 0.3673469387755102,
+          "f1-score": 0.4675324675324675,
+          "support": 98.0
+        },
+        "risiko_stunting": {
+          "precision": 0.7936507936507936,
+          "recall": 0.704225352112676,
+          "f1-score": 0.746268656716418,
+          "support": 71.0
+        },
+        "accuracy": 0.824,
+        "macro avg": {
+          "precision": 0.7640503270424529,
+          "recall": 0.6854888502356391,
+          "f1-score": 0.7098438204425124,
+          "support": 500.0
+        },
+        "weighted avg": {
+          "precision": 0.8051341082364704,
+          "recall": 0.824,
+          "f1-score": 0.8038199960361625,
+          "support": 500.0
+        }
+      }
+    },
+    "Gradient Boosting": {
+      "cv_f1_mean": 0.7182629727731982,
+      "accuracy": 0.832,
+      "precision": 0.7615604633746035,
+      "recall": 0.6963147030651756,
+      "f1_score": 0.7224078236669631,
+      "confusion_matrix": [
+        [
+          325,
+          6,
+          0
+        ],
+        [
+          42,
+          45,
+          11
+        ],
+        [
+          0,
+          25,
+          46
+        ]
+      ],
+      "classification_report": {
+        "normal": {
+          "precision": 0.885558583106267,
+          "recall": 0.9818731117824774,
+          "f1-score": 0.9312320916905444,
+          "support": 331.0
+        },
+        "pemantauan": {
+          "precision": 0.5921052631578947,
+          "recall": 0.45918367346938777,
+          "f1-score": 0.5172413793103449,
+          "support": 98.0
+        },
+        "risiko_stunting": {
+          "precision": 0.8070175438596491,
+          "recall": 0.647887323943662,
+          "f1-score": 0.71875,
+          "support": 71.0
+        },
+        "accuracy": 0.832,
+        "macro avg": {
+          "precision": 0.7615604633746035,
+          "recall": 0.6963147030651756,
+          "f1-score": 0.7224078236669631,
+          "support": 500.0
+        },
+        "weighted avg": {
+          "precision": 0.8168889048233663,
+          "recall": 0.832,
+          "f1-score": 0.819917455043968,
+          "support": 500.0
+        }
+      }
+    }
+  },
+  "best_metrics": {
+    "cv_f1_mean": 0.7349220438488786,
+    "accuracy": 0.84,
+    "precision": 0.7667494622158255,
+    "recall": 0.7237630935953804,
+    "f1_score": 0.7395261280153367,
+    "confusion_matrix": [
+      [
+        323,
+        8,
+        0
+      ],
+      [
+        39,
+        44,
+        15
+      ],
+      [
+        0,
+        18,
+        53
+      ]
+    ],
+    "classification_report": {
+      "normal": {
+        "precision": 0.8922651933701657,
+        "recall": 0.9758308157099698,
+        "f1-score": 0.9321789321789322,
+        "support": 331.0
+      },
+      "pemantauan": {
+        "precision": 0.6285714285714286,
+        "recall": 0.4489795918367347,
+        "f1-score": 0.5238095238095238,
+        "support": 98.0
+      },
+      "risiko_stunting": {
+        "precision": 0.7794117647058824,
+        "recall": 0.7464788732394366,
+        "f1-score": 0.762589928057554,
+        "support": 71.0
+      },
+      "accuracy": 0.84,
+      "macro avg": {
+        "precision": 0.7667494622158255,
+        "recall": 0.7237630935953804,
+        "f1-score": 0.7395261280153367,
+        "support": 500.0
+      },
+      "weighted avg": {
+        "precision": 0.824556028599285,
+        "recall": 0.84,
+        "f1-score": 0.8280568895532924,
+        "support": 500.0
+      }
+    }
+  },
+  "note": "AI screening risiko pertumbuhan stunting balita (bukan diagnosis medis).",
+  "created_at": "2026-09-15"
+}

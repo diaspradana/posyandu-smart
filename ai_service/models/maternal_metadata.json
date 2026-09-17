@@ -1,0 +1,249 @@
+{
+  "model_name": "Random Forest",
+  "model_version": "maternal-v1.0",
+  "feature_columns": [
+    "Age",
+    "SystolicBP",
+    "DiastolicBP",
+    "BS",
+    "BodyTemp",
+    "HeartRate"
+  ],
+  "target_classes": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "benchmark_comparison": {
+    "Logistic Regression": {
+      "cv_f1_mean": 0.9106537966530605,
+      "accuracy": 0.9310344827586207,
+      "precision": 0.9382508558979147,
+      "recall": 0.9346477489097721,
+      "f1_score": 0.9359901143033672,
+      "confusion_matrix": [
+        [
+          55,
+          0,
+          0
+        ],
+        [
+          0,
+          76,
+          5
+        ],
+        [
+          0,
+          9,
+          58
+        ]
+      ],
+      "classification_report": {
+        "low": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 55.0
+        },
+        "medium": {
+          "precision": 0.8941176470588236,
+          "recall": 0.9382716049382716,
+          "f1-score": 0.9156626506024096,
+          "support": 81.0
+        },
+        "high": {
+          "precision": 0.9206349206349206,
+          "recall": 0.8656716417910447,
+          "f1-score": 0.8923076923076924,
+          "support": 67.0
+        },
+        "accuracy": 0.9310344827586207,
+        "macro avg": {
+          "precision": 0.9382508558979147,
+          "recall": 0.9346477489097721,
+          "f1-score": 0.9359901143033672,
+          "support": 203.0
+        },
+        "weighted avg": {
+          "precision": 0.9315569906123369,
+          "recall": 0.9310344827586207,
+          "f1-score": 0.9308043846473427,
+          "support": 203.0
+        }
+      }
+    },
+    "Random Forest": {
+      "cv_f1_mean": 0.974918457625645,
+      "accuracy": 0.9655172413793104,
+      "precision": 0.9713678419604901,
+      "recall": 0.9660340273938948,
+      "f1_score": 0.9679400888146188,
+      "confusion_matrix": [
+        [
+          55,
+          0,
+          0
+        ],
+        [
+          0,
+          80,
+          1
+        ],
+        [
+          0,
+          6,
+          61
+        ]
+      ],
+      "classification_report": {
+        "low": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 55.0
+        },
+        "medium": {
+          "precision": 0.9302325581395349,
+          "recall": 0.9876543209876543,
+          "f1-score": 0.9580838323353293,
+          "support": 81.0
+        },
+        "high": {
+          "precision": 0.9838709677419355,
+          "recall": 0.9104477611940298,
+          "f1-score": 0.9457364341085271,
+          "support": 67.0
+        },
+        "accuracy": 0.9655172413793104,
+        "macro avg": {
+          "precision": 0.9713678419604901,
+          "recall": 0.9660340273938948,
+          "f1-score": 0.9679400888146188,
+          "support": 203.0
+        },
+        "weighted avg": {
+          "precision": 0.9668383844729656,
+          "recall": 0.9655172413793104,
+          "f1-score": 0.9653651798247931,
+          "support": 203.0
+        }
+      }
+    },
+    "Gradient Boosting": {
+      "cv_f1_mean": 0.9581054042307212,
+      "accuracy": 0.9556650246305419,
+      "precision": 0.9605654761904763,
+      "recall": 0.9578035747189976,
+      "f1_score": 0.9589174184594031,
+      "confusion_matrix": [
+        [
+          55,
+          0,
+          0
+        ],
+        [
+          0,
+          78,
+          3
+        ],
+        [
+          0,
+          6,
+          61
+        ]
+      ],
+      "classification_report": {
+        "low": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 55.0
+        },
+        "medium": {
+          "precision": 0.9285714285714286,
+          "recall": 0.9629629629629629,
+          "f1-score": 0.9454545454545454,
+          "support": 81.0
+        },
+        "high": {
+          "precision": 0.953125,
+          "recall": 0.9104477611940298,
+          "f1-score": 0.9312977099236641,
+          "support": 67.0
+        },
+        "accuracy": 0.9556650246305419,
+        "macro avg": {
+          "precision": 0.9605654761904763,
+          "recall": 0.9578035747189976,
+          "f1-score": 0.9589174184594031,
+          "support": 203.0
+        },
+        "weighted avg": {
+          "precision": 0.9560278852920479,
+          "recall": 0.9556650246305419,
+          "f1-score": 0.9555604174714466,
+          "support": 203.0
+        }
+      }
+    }
+  },
+  "best_metrics": {
+    "cv_f1_mean": 0.974918457625645,
+    "accuracy": 0.9655172413793104,
+    "precision": 0.9713678419604901,
+    "recall": 0.9660340273938948,
+    "f1_score": 0.9679400888146188,
+    "confusion_matrix": [
+      [
+        55,
+        0,
+        0
+      ],
+      [
+        0,
+        80,
+        1
+      ],
+      [
+        0,
+        6,
+        61
+      ]
+    ],
+    "classification_report": {
+      "low": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 55.0
+      },
+      "medium": {
+        "precision": 0.9302325581395349,
+        "recall": 0.9876543209876543,
+        "f1-score": 0.9580838323353293,
+        "support": 81.0
+      },
+      "high": {
+        "precision": 0.9838709677419355,
+        "recall": 0.9104477611940298,
+        "f1-score": 0.9457364341085271,
+        "support": 67.0
+      },
+      "accuracy": 0.9655172413793104,
+      "macro avg": {
+        "precision": 0.9713678419604901,
+        "recall": 0.9660340273938948,
+        "f1-score": 0.9679400888146188,
+        "support": 203.0
+      },
+      "weighted avg": {
+        "precision": 0.9668383844729656,
+        "recall": 0.9655172413793104,
+        "f1-score": 0.9653651798247931,
+        "support": 203.0
+      }
+    }
+  },
+  "note": "AI screening risiko maternal (bukan diagnosis medis).",
+  "created_at": "2026-09-15"
+}
