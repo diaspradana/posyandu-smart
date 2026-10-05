@@ -465,44 +465,251 @@ class DashboardController extends Controller
     }
 
     /**
-     * Laporan Posyandu Wilayah
+     * Parse periode string to extract year and month filters.
+     */
+    private function parsePeriode(?string $periode): array
+    {
+        if (!$periode || $periode === 'semua' || $periode === 'Semua Periode') {
+            return ['type' => 'all', 'year' => null, 'month' => null, 'label' => 'Semua Periode'];
+        }
+
+        $bulanMap = [
+            'januari' => 1, 'jan' => 1,
+            'februari' => 2, 'feb' => 2,
+            'maret' => 3, 'mar' => 3,
+            'april' => 4, 'apr' => 4,
+            'mei' => 5, 'may' => 5,
+            'juni' => 6, 'jun' => 6,
+            'juli' => 7, 'jul' => 7,
+            'agustus' => 8, 'agu' => 8, 'ags' => 8,
+            'september' => 9, 'sep' => 9,
+            'oktober' => 10, 'okt' => 10, 'oct' => 10,
+            'november' => 11, 'nov' => 11,
+            'desember' => 12, 'des' => 12, 'dec' => 12,
+        ];
+
+        if (preg_match('/^tahun\s*(\d{4})$/i', trim($periode), $matches) || preg_match('/^(\d{4})$/', trim($periode), $matches)) {
+            return ['type' => 'year', 'year' => (int)$matches[1], 'month' => null, 'label' => 'Tahun ' . $matches[1]];
+        }
+
+        if (preg_match('/^(\d{4})-(\d{1,2})$/', trim($periode), $matches)) {
+            $year = (int)$matches[1];
+            $month = (int)$matches[2];
+            $monthNames = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'];
+            $label = ($monthNames[$month] ?? "Bulan $month") . " $year";
+            return ['type' => 'month', 'year' => $year, 'month' => $month, 'label' => $label];
+        }
+
+        if (preg_match('/^([a-z]+)\s*(\d{4})$/i', trim($periode), $matches)) {
+            $bStr = strtolower($matches[1]);
+            $year = (int)$matches[2];
+            if (isset($bulanMap[$bStr])) {
+                $month = $bulanMap[$bStr];
+                $monthNames = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'];
+                return ['type' => 'month', 'year' => $year, 'month' => $month, 'label' => $monthNames[$month] . ' ' . $year];
+            }
+        }
+
+        return ['type' => 'all', 'year' => null, 'month' => null, 'label' => $periode];
+    }
+
+    /**
+     * Laporan Posyandu Wilayah (Admin Puskesmas)
      */
     public function laporan(Request $request)
     {
         $user = $request->user();
         $puskesmasId = $user->puskesmas_id;
         $taposList = Tapos::where('puskesmas_id', $puskesmasId)->get();
-        $taposIds = $taposList->pluck('id');
+        $allTaposIds = $taposList->pluck('id');
 
-        $totalBalita = Balita::whereIn('tapos_id', $taposIds)->where('status', 'aktif')->count();
-        $totalIbuHamil = IbuHamil::whereIn('tapos_id', $taposIds)->where('status', 'aktif')->count();
-
-        $balitaStuntingCount = PemeriksaanBalita::whereHas('balita', fn($q) => $q->whereIn('tapos_id', $taposIds))
-            ->whereIn('status_stunting', ['risiko_stunting', 'stunting'])
-            ->where('kehadiran', true)
-            ->distinct('balita_id')
-            ->count('balita_id');
-
-        $ibuHamilRiskCount = PemeriksaanIbuHamil::whereHas('ibuHamil', fn($q) => $q->whereIn('tapos_id', $taposIds))
-            ->where('ai_risk_level', 'high')
-            ->where('kehadiran', true)
-            ->distinct('ibu_hamil_id')
-            ->count('ibu_hamil_id');
-
-        $periode = $request->get('periode', 'September 2026');
+        // Parameter filters
+        $selectedTaposId = $request->get('tapos_id', 'semua');
+        $periode = $request->get('periode', 'Agustus 2026');
         $jenis = $request->get('jenis', 'semua');
-        $generated = true;
+        $statusFilter = $request->get('status_filter', 'semua');
+        $statusValidasi = $request->get('status_validasi', 'semua');
+        $search = $request->get('search', '');
+
+        $targetTaposIds = ($selectedTaposId !== 'semua') 
+            ? $taposList->where('id', $selectedTaposId)->pluck('id')
+            : $allTaposIds;
+
+        $selectedTapos = ($selectedTaposId !== 'semua') 
+            ? $taposList->firstWhere('id', $selectedTaposId) 
+            : null;
+
+        $parsedPeriode = $this->parsePeriode($periode);
+
+        // 1. Total Sasaran
+        $totalBalita = Balita::whereIn('tapos_id', $targetTaposIds)->where('status', 'aktif')->count();
+        $totalIbuHamil = IbuHamil::whereIn('tapos_id', $targetTaposIds)->where('status', 'aktif')->count();
+
+        // 2. Query Pemeriksaan Balita
+        $balitaExamQuery = PemeriksaanBalita::whereHas('balita', function ($q) use ($targetTaposIds, $search) {
+            $q->whereIn('tapos_id', $targetTaposIds);
+            if (!empty($search)) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('nama', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%")
+                        ->orWhere('nama_ibu', 'like', "%{$search}%");
+                });
+            }
+        })->with(['balita.tapos']);
+
+        // 3. Query Pemeriksaan Ibu Hamil
+        $bumilExamQuery = PemeriksaanIbuHamil::whereHas('ibuHamil', function ($q) use ($targetTaposIds, $search) {
+            $q->whereIn('tapos_id', $targetTaposIds);
+            if (!empty($search)) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('nama', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%");
+                });
+            }
+        })->with(['ibuHamil.tapos']);
+
+        // Apply Periode Filter
+        if ($parsedPeriode['type'] === 'month') {
+            $balitaExamQuery->whereYear('tanggal_pemeriksaan', $parsedPeriode['year'])
+                            ->whereMonth('tanggal_pemeriksaan', $parsedPeriode['month']);
+            $bumilExamQuery->whereYear('tanggal_pemeriksaan', $parsedPeriode['year'])
+                           ->whereMonth('tanggal_pemeriksaan', $parsedPeriode['month']);
+        } elseif ($parsedPeriode['type'] === 'year') {
+            $balitaExamQuery->whereYear('tanggal_pemeriksaan', $parsedPeriode['year']);
+            $bumilExamQuery->whereYear('tanggal_pemeriksaan', $parsedPeriode['year']);
+        }
+
+        // Apply Status Validasi Filter
+        if ($statusValidasi !== 'semua') {
+            $balitaExamQuery->where('status_validasi', $statusValidasi);
+            $bumilExamQuery->where('status_validasi', $statusValidasi);
+        }
+
+        $allBalitaExaminations = $balitaExamQuery->orderBy('tanggal_pemeriksaan', 'desc')->get();
+        $allBumilExaminations = $bumilExamQuery->orderBy('tanggal_pemeriksaan', 'desc')->get();
+
+        // Apply Status/AI Filter
+        $balitaExaminations = $allBalitaExaminations;
+        $bumilExaminations = $allBumilExaminations;
+
+        if ($statusFilter !== 'semua') {
+            if ($statusFilter === 'risiko') {
+                $balitaExaminations = $balitaExaminations->filter(fn($p) => in_array($p->hasil_ai ?? $p->status_stunting, ['risiko_stunting', 'stunting']));
+                $bumilExaminations = $bumilExaminations->filter(fn($p) => strtolower($p->ai_risk_level ?? '') === 'high');
+            } elseif ($statusFilter === 'pemantauan') {
+                $balitaExaminations = $balitaExaminations->filter(fn($p) => ($p->hasil_ai ?? $p->status_stunting) === 'pemantauan');
+                $bumilExaminations = $bumilExaminations->filter(fn($p) => strtolower($p->ai_risk_level ?? '') === 'medium');
+            } elseif ($statusFilter === 'normal') {
+                $balitaExaminations = $balitaExaminations->filter(fn($p) => ($p->hasil_ai ?? $p->status_stunting) === 'normal');
+                $bumilExaminations = $bumilExaminations->filter(fn($p) => strtolower($p->ai_risk_level ?? '') === 'low');
+            }
+        }
+
+        // Balita Statistics
+        $balitaDiperiksaCount = $allBalitaExaminations->where('kehadiran', true)->count();
+        $balitaNormalCount = $allBalitaExaminations->where('kehadiran', true)->filter(fn($p) => ($p->hasil_ai ?? $p->status_stunting) === 'normal')->count();
+        $balitaPemantauanCount = $allBalitaExaminations->where('kehadiran', true)->filter(fn($p) => ($p->hasil_ai ?? $p->status_stunting) === 'pemantauan')->count();
+        $balitaStuntingCount = $allBalitaExaminations->where('kehadiran', true)->filter(fn($p) => in_array($p->hasil_ai ?? $p->status_stunting, ['risiko_stunting', 'stunting']))->count();
+        $balitaImunisasiTertunda = $allBalitaExaminations->where('kehadiran', true)->filter(fn($p) => in_array($p->status_imunisasi, ['tertunda', 'belum_lengkap']))->count();
+        $balitaPendingValidasi = $allBalitaExaminations->where('status_validasi', 'pending')->count();
+
+        // Ibu Hamil Statistics
+        $ibuHamilDiperiksaCount = $allBumilExaminations->where('kehadiran', true)->count();
+        $ibuHamilLowCount = $allBumilExaminations->where('kehadiran', true)->filter(fn($p) => strtolower($p->ai_risk_level ?? '') === 'low')->count();
+        $ibuHamilMediumCount = $allBumilExaminations->where('kehadiran', true)->filter(fn($p) => strtolower($p->ai_risk_level ?? '') === 'medium')->count();
+        $ibuHamilRiskCount = $allBumilExaminations->where('kehadiran', true)->filter(fn($p) => strtolower($p->ai_risk_level ?? '') === 'high')->count();
+        $ibuHamilPendingValidasi = $allBumilExaminations->where('status_validasi', 'pending')->count();
+
+        // Overall Attendance Rate
+        $totalChecks = $allBalitaExaminations->count() + $allBumilExaminations->count();
+        $totalPresent = $balitaDiperiksaCount + $ibuHamilDiperiksaCount;
+        $overallAttendanceRate = ($totalChecks > 0) ? round(($totalPresent / $totalChecks) * 100) : 85;
+
+        // Rekapitulasi per Posyandu Tapos
+        $rekapTapos = [];
+        foreach ($taposList as $t) {
+            if ($selectedTaposId !== 'semua' && $t->id != $selectedTaposId) {
+                continue;
+            }
+
+            $tBalitaTotal = Balita::where('tapos_id', $t->id)->where('status', 'aktif')->count();
+            $tBumilTotal = IbuHamil::where('tapos_id', $t->id)->where('status', 'aktif')->count();
+
+            $tBalitaExams = $allBalitaExaminations->filter(fn($p) => $p->balita && $p->balita->tapos_id == $t->id);
+            $tBumilExams = $allBumilExaminations->filter(fn($p) => $p->ibuHamil && $p->ibuHamil->tapos_id == $t->id);
+
+            $tBalitaHadir = $tBalitaExams->where('kehadiran', true)->count();
+            $tBumilHadir = $tBumilExams->where('kehadiran', true)->count();
+
+            $tTotalCheck = $tBalitaExams->count() + $tBumilExams->count();
+            $tTotalPres = $tBalitaHadir + $tBumilHadir;
+            $attendanceRate = $tTotalCheck > 0 ? round(($tTotalPres / $tTotalCheck) * 100) : ($tBalitaTotal + $tBumilTotal > 0 ? 85 : 0);
+
+            $tStunting = $tBalitaExams->where('kehadiran', true)->filter(fn($p) => in_array($p->hasil_ai ?? $p->status_stunting, ['risiko_stunting', 'stunting']))->count();
+            $tPemantauan = $tBalitaExams->where('kehadiran', true)->filter(fn($p) => ($p->hasil_ai ?? $p->status_stunting) === 'pemantauan')->count();
+            $tNormal = $tBalitaExams->where('kehadiran', true)->filter(fn($p) => ($p->hasil_ai ?? $p->status_stunting) === 'normal')->count();
+            $tHighRiskBumil = $tBumilExams->where('kehadiran', true)->filter(fn($p) => strtolower($p->ai_risk_level ?? '') === 'high')->count();
+
+            // Status Indikator Tapos
+            if ($tStunting >= 2 || $tHighRiskBumil >= 2 || $attendanceRate < 70) {
+                $statusLabel = 'Perhatian Khusus';
+                $statusDot = '🔴';
+                $statusClass = 'danger';
+            } elseif ($tStunting >= 1 || $tPemantauan >= 2 || $tHighRiskBumil >= 1 || $attendanceRate < 85) {
+                $statusLabel = 'Pemantauan';
+                $statusDot = '🟡';
+                $statusClass = 'warning';
+            } else {
+                $statusLabel = 'Kondisi Baik';
+                $statusDot = '🟢';
+                $statusClass = 'success';
+            }
+
+            $rekapTapos[] = [
+                'tapos' => $t,
+                'balita_total' => $tBalitaTotal,
+                'bumil_total' => $tBumilTotal,
+                'balita_diperiksa' => $tBalitaHadir,
+                'bumil_diperiksa' => $tBumilHadir,
+                'attendance_rate' => $attendanceRate,
+                'stunting_count' => $tStunting,
+                'pemantauan_count' => $tPemantauan,
+                'normal_count' => $tNormal,
+                'high_risk_bumil_count' => $tHighRiskBumil,
+                'status_label' => $statusLabel,
+                'status_dot' => $statusDot,
+                'status_class' => $statusClass,
+            ];
+        }
 
         return view('dashboard.laporan', compact(
             'user',
             'taposList',
+            'selectedTaposId',
+            'selectedTapos',
             'totalBalita',
             'totalIbuHamil',
+            'balitaDiperiksaCount',
+            'balitaNormalCount',
+            'balitaPemantauanCount',
             'balitaStuntingCount',
+            'balitaImunisasiTertunda',
+            'balitaPendingValidasi',
+            'ibuHamilDiperiksaCount',
+            'ibuHamilLowCount',
+            'ibuHamilMediumCount',
             'ibuHamilRiskCount',
+            'ibuHamilPendingValidasi',
+            'overallAttendanceRate',
             'periode',
+            'parsedPeriode',
             'jenis',
-            'generated'
+            'statusFilter',
+            'statusValidasi',
+            'search',
+            'balitaExaminations',
+            'bumilExaminations',
+            'rekapTapos'
         ));
     }
 

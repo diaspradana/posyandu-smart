@@ -18,7 +18,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Truncate tables for fresh seed
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        $driver = DB::getDriverName();
+        if ($driver === 'mysql') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        } elseif ($driver === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF;');
+        }
+
         PemeriksaanBalita::truncate();
         PemeriksaanIbuHamil::truncate();
         JadwalPosyandu::truncate();
@@ -27,7 +33,12 @@ class DatabaseSeeder extends Seeder
         Tapos::truncate();
         User::truncate();
         Puskesmas::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        if ($driver === 'mysql') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        } elseif ($driver === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = ON;');
+        }
 
         /*
         |--------------------------------------------------------------------------

@@ -422,6 +422,26 @@
         {{-- CONTENT --}}
         <section class="page-content">
 
+            @if(session('success'))
+                <div class="no-print" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: 10px; padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 18px; color: #16a34a;">✓</span>
+                        <span style="color: #166534; font-size: 13px; font-weight: 600;">{{ session('success') }}</span>
+                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 18px; color: #166534; cursor: pointer; line-height: 1;">&times;</button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="no-print" style="background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 10px; padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 18px; color: #dc2626;">⚠️</span>
+                        <span style="color: #991b1b; font-size: 13px; font-weight: 600;">{{ session('error') }}</span>
+                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 18px; color: #991b1b; cursor: pointer; line-height: 1;">&times;</button>
+                </div>
+            @endif
+
             @yield('content')
 
         </section>

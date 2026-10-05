@@ -38,6 +38,16 @@ Route::middleware('guest')->group(function () {
         AuthController::class,
         'login'
     ])->name('login.process');
+
+    Route::get('/register', [
+        AuthController::class,
+        'showRegisterAdmin'
+    ])->name('register');
+
+    Route::post('/register', [
+        AuthController::class,
+        'registerAdmin'
+    ])->name('register.process');
 });
 
 Route::post('/logout', [
@@ -264,6 +274,10 @@ Route::middleware(['auth', 'role:admin,kader'])
         Route::resource('tapos', TaposController::class)->parameters([
             'tapos' => 'tapo'
         ]);
+
+        Route::post('tapos/{tapo}/kader', [TaposController::class, 'storeKader'])->name('tapos.kader.store');
+        Route::put('tapos/{tapo}/kader/{user}', [TaposController::class, 'updateKader'])->name('tapos.kader.update');
+        Route::delete('tapos/{tapo}/kader/{user}', [TaposController::class, 'destroyKader'])->name('tapos.kader.destroy');
 
         Route::resource('balita', BalitaController::class)->parameters([
             'balita' => 'balita'

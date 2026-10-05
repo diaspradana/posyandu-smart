@@ -4,6 +4,11 @@
 @section('page-title', 'Detail Balita')
 
 @section('content')
+
+@php
+    $backRoute = auth()->user()->isKader() ? route('kader.warga.balita') : route('balita.index');
+@endphp
+
 <div class="page-heading">
     <div>
         <span class="eyebrow">DETAIL REKAM MEDIS</span>
@@ -11,11 +16,16 @@
         <p>Informasi profil lengkap dan riwayat pemeriksaan pertumbuhan balita.</p>
     </div>
 
-    <div style="display: flex; gap: 8px;">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        @if(auth()->user()->isKader())
+            <a href="{{ route('kader.kegiatan.pemeriksaan', ['tab' => 'balita', 'balita_id' => $balita->id]) }}" class="btn-primary" style="background: var(--primary);">
+                🩺 Periksa Balita
+            </a>
+        @endif
         <a href="{{ route('balita.edit', $balita) }}" class="btn-primary" style="background: #eab308; color: #713f12;">
             ✏️ Edit Data
         </a>
-        <a href="{{ route('balita.index') }}" class="btn-secondary">
+        <a href="{{ $backRoute }}" class="btn-secondary">
             &larr; Kembali
         </a>
     </div>
@@ -31,12 +41,14 @@
         <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
             <div>
                 <span style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase;">NIK</span>
-                <div style="font-weight: 700; color: #1e293b;">{{ $balita->nik }}</div>
+                <div style="font-weight: 700; color: #1e293b; font-family: monospace;">{{ $balita->nik }}</div>
             </div>
 
             <div>
                 <span style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase;">Jenis Kelamin</span>
-                <div style="font-weight: 600;">{{ $balita->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</div>
+                <div style="font-weight: 600; color: {{ $balita->jenis_kelamin === 'L' ? '#0284c7' : '#db2777' }};">
+                    {{ $balita->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}
+                </div>
             </div>
 
             <div>
@@ -79,11 +91,18 @@
 
     {{-- EXAMINATION HISTORY CARD --}}
     <div class="dashboard-card" style="padding: 0; overflow: hidden;">
-        <div style="padding: 18px 20px; border-bottom: 1px solid #f1f5f9;">
-            <h2 style="font-size: 16px; font-weight: 700; color: #172b26;">
-                Riwayat Pemeriksaan Pertumbuhan
-            </h2>
-            <p style="font-size: 12px; color: #64748b; margin-top: 2px;">Catatan penimbangan berat dan tinggi badan bulanan</p>
+        <div style="padding: 18px 20px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2 style="font-size: 16px; font-weight: 700; color: #172b26;">
+                    Riwayat Pemeriksaan Pertumbuhan
+                </h2>
+                <p style="font-size: 12px; color: #64748b; margin-top: 2px;">Catatan penimbangan berat dan tinggi badan bulanan</p>
+            </div>
+            @if(auth()->user()->isKader())
+                <a href="{{ route('kader.kegiatan.pemeriksaan', ['tab' => 'balita', 'balita_id' => $balita->id]) }}" class="btn-action edit" style="padding: 6px 12px;">
+                    + Input Pemeriksaan
+                </a>
+            @endif
         </div>
 
         <div class="table-responsive">

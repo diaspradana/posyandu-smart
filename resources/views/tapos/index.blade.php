@@ -13,10 +13,12 @@
         <p>Kelola data tempat pelayanan dan pos kegiatan Posyandu di wilayah kerja Puskesmas.</p>
     </div>
 
-    <a href="{{ route('tapos.create') }}" class="btn-primary">
-        <span>+</span>
-        <span>Tambah Tapos</span>
-    </a>
+    @if(auth()->user()->isAdmin())
+        <a href="{{ route('tapos.create') }}" class="btn-primary">
+            <span>+</span>
+            <span>Tambah Tapos</span>
+        </a>
+    @endif
 </div>
 
 {{-- SEARCH & FILTER CARD --}}
@@ -62,6 +64,7 @@
                     <th>Wilayah / Kelurahan</th>
                     <th style="text-align: center;">Balita</th>
                     <th style="text-align: center;">Ibu Hamil</th>
+                    <th style="text-align: center;">Petugas Kader</th>
                     <th style="text-align: center;">Status</th>
                     <th style="text-align: right;">Aksi</th>
                 </tr>
@@ -84,32 +87,40 @@
                             {{ $tapo->ibu_hamil_count }}
                         </td>
                         <td style="text-align: center;">
+                            <a href="{{ route('tapos.show', $tapo) }}" class="status-pill info" style="text-decoration: none; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" title="Lihat & Kelola Petugas Kader">
+                                <span>👥</span>
+                                <span>{{ $tapo->kaders_count ?? 0 }} Kader</span>
+                            </a>
+                        </td>
+                        <td style="text-align: center;">
                             <span class="badge-status {{ $tapo->status === 'aktif' ? 'aktif' : 'tidak_aktif' }}">
                                 {{ $tapo->status === 'aktif' ? '🟢 Aktif' : '🔴 Tidak Aktif' }}
                             </span>
                         </td>
                         <td style="text-align: right;">
                             <div class="actions-group">
-                                <a href="{{ route('tapos.show', $tapo) }}" class="btn-action view" title="Lihat Detail">
+                                <a href="{{ route('tapos.show', $tapo) }}" class="btn-action view" title="Lihat Detail & Kader">
                                     Detail
                                 </a>
 
-                                <a href="{{ route('tapos.edit', $tapo) }}" class="btn-action edit" title="Edit Data">
-                                    Edit
-                                </a>
+                                @if(auth()->user()->isAdmin())
+                                    <a href="{{ route('tapos.edit', $tapo) }}" class="btn-action edit" title="Edit Data">
+                                        Edit
+                                    </a>
 
-                                <form
-                                    method="POST"
-                                    action="{{ route('tapos.destroy', $tapo) }}"
-                                    onsubmit="return confirm('Apakah Anda yakin ingin menghapus data Tapos ini?')"
-                                    style="display: inline;"
-                                >
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-action delete" title="Hapus">
-                                        Hapus
-                                    </button>
-                                </form>
+                                    <form
+                                        method="POST"
+                                        action="{{ route('tapos.destroy', $tapo) }}"
+                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus data Tapos ini?')"
+                                        style="display: inline;"
+                                    >
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-action delete" title="Hapus">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

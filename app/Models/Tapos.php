@@ -49,4 +49,14 @@ class Tapos extends Model
     {
         return $this->hasMany(IbuHamil::class);
     }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
+    public function kaders(): HasMany
+    {
+        return $this->hasMany(User::class)->where('role', 'kader');
+    }
 }

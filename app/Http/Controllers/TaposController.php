@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tapos;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -16,7 +17,8 @@ class TaposController extends Controller
         $query = Tapos::with('puskesmas')
             ->withCount([
                 'balita',
-                'ibuHamil'
+                'ibuHamil',
+                'kaders'
             ]);
 
         if ($user->isKader()) {
@@ -132,10 +134,13 @@ class TaposController extends Controller
 
         $tapo->loadCount([
             'balita',
-            'ibuHamil'
+            'ibuHamil',
+            'kaders'
         ]);
 
-        return view('tapos.show', compact('tapo'));
+        $kaders = $tapo->kaders()->latest()->get();
+
+        return view('tapos.show', compact('tapo', 'kaders'));
     }
 
     public function edit(Tapos $tapo)
@@ -223,5 +228,89 @@ class TaposController extends Controller
         return redirect()
             ->route('tapos.index')
             ->with('success', 'Data Tapos berhasil dihapus.');
+    }
+
+    public function storeKader(Request $request, Tapos $tapo)
+    {
+        Gate::authorize('update', $tapo);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ], [
+            'name.required' => 'Nama lengkap kader wajib diisi.',
+            'email.required' => 'Email kader wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email ini sudah terdaftar dalam sistem.',
+            'password.required' => 'Password kader wajib diisi.',
+            'password.min' => 'Password minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ]);
+
+        User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+            'role' => 'kader',
+            'puskesmas_id' => $tapo->puskesmas_id,
+            'tapos_id' => $tapo->id,
+        ]);
+
+        return redirect()
+            ->route('tapos.show', $tapo)
+            ->with('success', "Akun Petugas/Kader '{$validated['name']}' berhasil didaftarkan untuk {$tapo->nama}.");
+    }
+
+    public function updateKader(Request $request, Tapos $tapo, User $user)
+    {
+        Gate::authorize('update', $tapo);
+
+        if ((int)$user->tapos_id !== (int)$tapo->id || $user->role !== 'kader') {
+            abort(404, 'Data kader tidak ditemukan pada Tapos ini.');
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'password' => ['nullable', 'string', 'min:6'],
+        ], [
+            'name.required' => 'Nama lengkap kader wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email ini sudah terdaftar oleh pengguna lain.',
+            'password.min' => 'Password baru minimal 6 karakter.',
+        ]);
+
+        $data = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ];
+
+        if (!empty($validated['password'])) {
+            $data['password'] = $validated['password'];
+        }
+
+        $user->update($data);
+
+        return redirect()
+            ->route('tapos.show', $tapo)
+            ->with('success', "Data Akun Kader '{$user->name}' berhasil diperbarui.");
+    }
+
+    public function destroyKader(Tapos $tapo, User $user)
+    {
+        Gate::authorize('update', $tapo);
+
+        if ((int)$user->tapos_id !== (int)$tapo->id || $user->role !== 'kader') {
+            abort(404, 'Data kader tidak ditemukan pada Tapos ini.');
+        }
+
+        $userName = $user->name;
+        $user->delete();
+
+        return redirect()
+            ->route('tapos.show', $tapo)
+            ->with('success', "Akun Kader '{$userName}' berhasil dihapus dari {$tapo->nama}.");
     }
 }

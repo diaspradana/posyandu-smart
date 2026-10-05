@@ -74,16 +74,20 @@ class BalitaController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        $activeTapos = $user->getActiveTapos();
+        $targetPuskesmasId = $user->puskesmas_id ?? ($activeTapos?->puskesmas_id);
+        $targetTaposId = $user->isKader() ? ($activeTapos?->id ?? $user->tapos_id) : null;
+
         $validated = $request->validate([
             'tapos_id' => [
                 'required',
                 Rule::exists('tapos', 'id')
                     ->where(
                         fn ($q) =>
-                        $q->where(
-                            'puskesmas_id',
-                            auth()->user()->puskesmas_id
-                        )
+                        $user->isKader()
+                            ? $q->where('id', $targetTaposId)
+                            : $q->where('puskesmas_id', $targetPuskesmasId)
                     ),
             ],
 
@@ -140,8 +144,10 @@ class BalitaController extends Controller
 
         Balita::create($validated);
 
+        $redirectRoute = $user->isKader() ? 'kader.warga.balita' : 'balita.index';
+
         return redirect()
-            ->route('balita.index')
+            ->route($redirectRoute)
             ->with(
                 'success',
                 'Data balita berhasil ditambahkan.'
@@ -179,6 +185,9 @@ class BalitaController extends Controller
         Gate::authorize('update', $balita);
 
         $user = auth()->user();
+        $activeTapos = $user->getActiveTapos();
+        $targetPuskesmasId = $user->puskesmas_id ?? ($activeTapos?->puskesmas_id);
+        $targetTaposId = $user->isKader() ? ($activeTapos?->id ?? $user->tapos_id) : null;
 
         $validated = $request->validate([
             'tapos_id' => [
@@ -187,8 +196,8 @@ class BalitaController extends Controller
                     ->where(
                         fn ($q) =>
                         $user->isKader()
-                            ? $q->where('id', $user->tapos_id)
-                            : $q->where('puskesmas_id', $user->puskesmas_id)
+                            ? $q->where('id', $targetTaposId)
+                            : $q->where('puskesmas_id', $targetPuskesmasId)
                     ),
             ],
 
@@ -246,8 +255,10 @@ class BalitaController extends Controller
 
         $balita->update($validated);
 
+        $redirectRoute = $user->isKader() ? 'kader.warga.balita' : 'balita.index';
+
         return redirect()
-            ->route('balita.index')
+            ->route($redirectRoute)
             ->with(
                 'success',
                 'Data balita berhasil diperbarui.'
@@ -258,10 +269,13 @@ class BalitaController extends Controller
     {
         Gate::authorize('delete', $balita);
 
+        $user = auth()->user();
         $balita->delete();
 
+        $redirectRoute = $user->isKader() ? 'kader.warga.balita' : 'balita.index';
+
         return redirect()
-            ->route('balita.index')
+            ->route($redirectRoute)
             ->with(
                 'success',
                 'Data balita berhasil dihapus.'
@@ -273,6 +287,10 @@ class BalitaController extends Controller
         $user = auth()->user();
 
         if ($user->isKader()) {
+            $activeTapos = $user->getActiveTapos();
+            if ($activeTapos) {
+                return collect([$activeTapos]);
+            }
             return Tapos::where('id', $user->tapos_id)->get();
         }
 

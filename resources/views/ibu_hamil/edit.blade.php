@@ -5,6 +5,10 @@
 
 @section('content')
 
+@php
+    $backRoute = auth()->user()->isKader() ? route('kader.warga.ibu-hamil') : route('ibu-hamil.index');
+@endphp
+
 <div class="page-heading">
     <div>
         <span class="eyebrow">MASTER DATA</span>
@@ -12,7 +16,7 @@
         <p>Perbarui informasi profil dan kehamilan {{ $ibuHamil->nama }}.</p>
     </div>
 
-    <a href="{{ route('ibu-hamil.index') }}" class="btn-secondary">
+    <a href="{{ $backRoute }}" class="btn-secondary">
         &larr; Kembali
     </a>
 </div>
@@ -26,10 +30,12 @@
             <div class="form-group">
                 <label>Posyandu / Tapos <span style="color: #dc2626;">*</span></label>
                 <select name="tapos_id" required class="form-control">
-                    <option value="">Pilih Posyandu / Tapos</option>
+                    @if(count($tapos) > 1)
+                        <option value="">Pilih Posyandu / Tapos</option>
+                    @endif
                     @foreach($tapos as $item)
                         <option value="{{ $item->id }}" @selected(old('tapos_id', $ibuHamil->tapos_id) == $item->id)>
-                            {{ $item->nama }}
+                            {{ $item->nama }} ({{ $item->kode }})
                         </option>
                     @endforeach
                 </select>
@@ -61,7 +67,7 @@
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
-            <a href="{{ route('ibu-hamil.index') }}" class="btn-secondary">
+            <a href="{{ $backRoute }}" class="btn-secondary">
                 Batal
             </a>
             <button type="submit" class="btn-primary">

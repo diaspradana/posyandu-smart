@@ -8,15 +8,19 @@
 {{-- PAGE HEADER --}}
 <div class="page-heading">
     <div>
-        <span class="eyebrow">DATA WARGA POSYANDU</span>
+        <span class="eyebrow">MASTER DATA WARGA</span>
         <h1>🤰 Data Ibu Hamil — {{ $tapos->nama }}</h1>
-        <p>Daftar ibu hamil sasaran posyandu di wilayah {{ $tapos->nama }}.</p>
+        <p>Kelola data ibu hamil sasaran posyandu: tambah data baru, edit profil kehamilan, hapus, dan lihat riwayat pemeriksaan.</p>
     </div>
 
-    <div style="display: flex; gap: 8px;">
-        <a href="{{ route('kader.kegiatan.pemeriksaan', ['tab' => 'ibu_hamil']) }}" class="btn-primary">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <a href="{{ route('ibu-hamil.create') }}" class="btn-primary" style="background: #db2777;">
+            <span>+</span>
+            <span>Tambah Ibu Hamil Baru</span>
+        </a>
+        <a href="{{ route('kader.kegiatan.pemeriksaan', ['tab' => 'ibu_hamil']) }}" class="btn-primary" style="background: #0284c7;">
             <span>🩺</span>
-            <span>Catat Pemeriksaan Bumil</span>
+            <span>Catat Pemeriksaan</span>
         </a>
     </div>
 </div>
@@ -68,7 +72,7 @@
                     <th>Usia Kehamilan</th>
                     <th>HPHT / Kontak</th>
                     <th style="text-align: center;">Status</th>
-                    <th style="text-align: right;">Aksi</th>
+                    <th style="text-align: right;">Aksi & Tindakan</th>
                 </tr>
             </thead>
             <tbody>
@@ -76,33 +80,51 @@
                     <tr>
                         <td>
                             <strong>{{ $item->nama }}</strong>
+                            <div style="font-size: 11px; color: #64748b;">Posyandu: {{ $tapos->nama }}</div>
                         </td>
                         <td>
-                            <span style="font-size: 12px; color: #475569;">{{ $item->nik }}</span>
+                            <span style="font-family: monospace; font-size: 12px; color: #475569;">{{ $item->nik }}</span>
                         </td>
                         <td style="text-align: center; font-weight: 700; color: var(--primary);">
-                            G{{ $item->kehamilan_ke }}
+                            Gravida (G{{ $item->kehamilan_ke }})
                         </td>
                         <td>
-                            <span>{{ $item->usia_kehamilan_minggu ?? '-' }} Minggu</span>
+                            <span style="font-weight: 600;">{{ $item->usia_kehamilan_minggu ? $item->usia_kehamilan_minggu . ' Minggu' : '-' }}</span>
                         </td>
                         <td>
                             <div>{{ $item->hari_pertama_haid_terakhir ? \Carbon\Carbon::parse($item->hari_pertama_haid_terakhir)->format('d/m/Y') : '-' }}</div>
                             <div style="font-size: 11px; color: #64748b;">{{ $item->no_hp ?? '-' }}</div>
                         </td>
                         <td style="text-align: center;">
-                            <span class="badge-status {{ $item->status === 'aktif' ? 'aktif' : ($item->status === 'meninggal' ? 'meninggal' : 'pindah') }}">
+                            <span class="badge-status {{ $item->status === 'aktif' ? 'aktif' : ($item->status === 'meninggal' ? 'meninggal' : ($item->status === 'melahirkan' ? 'melahirkan' : 'pindah')) }}">
                                 {{ ucfirst($item->status) }}
                             </span>
                         </td>
                         <td style="text-align: right;">
                             <div class="actions-group">
-                                <a href="{{ route('kader.kegiatan.pemeriksaan', ['tab' => 'ibu_hamil', 'ibu_hamil_id' => $item->id]) }}" class="btn-action edit" title="Periksa Ibu Hamil">
-                                    🩺 Periksa
+                                <a href="{{ route('ibu-hamil.show', $item) }}" class="btn-action view" title="Lihat Detail Profil">
+                                    Detail
                                 </a>
 
-                                <a href="{{ route('ibu-hamil.show', $item) }}" class="btn-action view" title="Detail Ibu Hamil">
-                                    Detail
+                                <a href="{{ route('ibu-hamil.edit', $item) }}" class="btn-action edit" title="Edit Data Ibu Hamil">
+                                    Edit
+                                </a>
+
+                                <form
+                                    method="POST"
+                                    action="{{ route('ibu-hamil.destroy', $item) }}"
+                                    onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ibu hamil {{ $item->nama }}?')"
+                                    style="display: inline;"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-action delete" title="Hapus Data">
+                                        Hapus
+                                    </button>
+                                </form>
+
+                                <a href="{{ route('kader.kegiatan.pemeriksaan', ['tab' => 'ibu_hamil', 'ibu_hamil_id' => $item->id]) }}" class="btn-action" style="background: #fdf2f8; color: #db2777; border: 1px solid #db2777; padding: 4px 8px;" title="Catat Pemeriksaan">
+                                    🩺 Periksa
                                 </a>
                             </div>
                         </td>

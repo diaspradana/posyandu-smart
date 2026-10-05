@@ -87,8 +87,11 @@ class IbuHamilController extends Controller
 
         IbuHamil::create($validated);
 
+        $user = auth()->user();
+        $redirectRoute = $user->isKader() ? 'kader.warga.ibu-hamil' : 'ibu-hamil.index';
+
         return redirect()
-            ->route('ibu-hamil.index')
+            ->route($redirectRoute)
             ->with(
                 'success',
                 'Data ibu hamil berhasil ditambahkan.'
@@ -132,8 +135,11 @@ class IbuHamilController extends Controller
 
         $ibuHamil->update($validated);
 
+        $user = auth()->user();
+        $redirectRoute = $user->isKader() ? 'kader.warga.ibu-hamil' : 'ibu-hamil.index';
+
         return redirect()
-            ->route('ibu-hamil.index')
+            ->route($redirectRoute)
             ->with(
                 'success',
                 'Data ibu hamil berhasil diperbarui.'
@@ -144,10 +150,13 @@ class IbuHamilController extends Controller
     {
         Gate::authorize('delete', $ibuHamil);
 
+        $user = auth()->user();
         $ibuHamil->delete();
 
+        $redirectRoute = $user->isKader() ? 'kader.warga.ibu-hamil' : 'ibu-hamil.index';
+
         return redirect()
-            ->route('ibu-hamil.index')
+            ->route($redirectRoute)
             ->with(
                 'success',
                 'Data ibu hamil berhasil dihapus.'
@@ -159,6 +168,9 @@ class IbuHamilController extends Controller
         ?IbuHamil $ibuHamil = null
     ) {
         $user = auth()->user();
+        $activeTapos = $user->getActiveTapos();
+        $targetPuskesmasId = $user->puskesmas_id ?? ($activeTapos?->puskesmas_id);
+        $targetTaposId = $user->isKader() ? ($activeTapos?->id ?? $user->tapos_id) : null;
 
         return $request->validate([
             'tapos_id' => [
@@ -167,8 +179,8 @@ class IbuHamilController extends Controller
                     ->where(
                         fn ($q) =>
                         $user->isKader()
-                            ? $q->where('id', $user->tapos_id)
-                            : $q->where('puskesmas_id', $user->puskesmas_id)
+                            ? $q->where('id', $targetTaposId)
+                            : $q->where('puskesmas_id', $targetPuskesmasId)
                     ),
             ],
 
@@ -239,6 +251,10 @@ class IbuHamilController extends Controller
         $user = auth()->user();
 
         if ($user->isKader()) {
+            $activeTapos = $user->getActiveTapos();
+            if ($activeTapos) {
+                return collect([$activeTapos]);
+            }
             return Tapos::where('id', $user->tapos_id)->get();
         }
 
