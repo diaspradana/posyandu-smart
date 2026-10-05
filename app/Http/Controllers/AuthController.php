@@ -40,7 +40,6 @@ class AuthController extends Controller
 
         $puskesmasId = $validated['puskesmas_id'] ?? null;
 
-        // If custom puskesmas name is provided, create a new Puskesmas record
         if (!empty($validated['puskesmas_nama'])) {
             $puskesmas = Puskesmas::create([
                 'nama' => $validated['puskesmas_nama'],
@@ -74,6 +73,7 @@ class AuthController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+        session(['admin_user_id' => $user->id, 'active_role' => 'admin']);
 
         return redirect()
             ->route('admin.dashboard')
@@ -100,10 +100,12 @@ class AuthController extends Controller
             $user = Auth::user();
 
             if ($user->role === 'admin') {
+                session(['admin_user_id' => $user->id, 'active_role' => 'admin']);
                 return redirect()->route('admin.dashboard');
             }
 
             if ($user->role === 'kader') {
+                session(['kader_user_id' => $user->id, 'active_role' => 'kader']);
                 return redirect()->route('kader.dashboard');
             }
 
@@ -121,12 +123,57 @@ class AuthController extends Controller
             ->withInput($request->only('email'));
     }
 
+    /**
+     * Quick Switch Role untuk pengujian / demonstrasi side-by-side
+     */
+    public function switchRole(Request $request, string $role)
+    {
+        if ($role === 'kader') {
+            $kaderId = session('kader_user_id');
+            $kader = $kaderId ? User::find($kaderId) : User::where('role', 'kader')->first();
+
+            if ($kader) {
+                Auth::setUser($kader);
+                session(['kader_user_id' => $kader->id, 'active_role' => 'kader']);
+                return redirect()->route('kader.dashboard')->with('success', "Beralih ke akun Kader: {$kader->name}");
+            }
+        } elseif ($role === 'admin') {
+            $adminId = session('admin_user_id');
+            $admin = $adminId ? User::find($adminId) : User::where('role', 'admin')->first();
+
+            if ($admin) {
+                Auth::setUser($admin);
+                session(['admin_user_id' => $admin->id, 'active_role' => 'admin']);
+                return redirect()->route('admin.dashboard')->with('success', "Beralih ke akun Admin: {$admin->name}");
+            }
+        }
+
+        return redirect()->route('dashboard');
+    }
+
     public function logout(Request $request)
     {
-        Auth::logout();
+        $user = Auth::user();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($user && $user->role === 'admin') {
+            session()->forget('admin_user_id');
+        } elseif ($user && $user->role === 'kader') {
+            session()->forget('kader_user_id');
+        }
+
+        if (!session('admin_user_id') && !session('kader_user_id')) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        } else {
+            if (session('admin_user_id')) {
+                $admin = User::find(session('admin_user_id'));
+                if ($admin) Auth::setUser($admin);
+            } elseif (session('kader_user_id')) {
+                $kader = User::find(session('kader_user_id'));
+                if ($kader) Auth::setUser($kader);
+            }
+        }
 
         return redirect()->route('login');
     }

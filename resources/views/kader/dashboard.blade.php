@@ -29,7 +29,7 @@
             <span class="stat-trend positive">Warga Binaan</span>
         </div>
         <span class="stat-label">Balita</span>
-        <strong class="stat-number">{{ $balitaCount }}</strong>
+        <strong id="rt-kader-balita" class="stat-number">{{ $balitaCount }}</strong>
         <span class="stat-description">Sasaran di {{ $tapos->nama }}</span>
     </div>
 
@@ -39,7 +39,7 @@
             <span class="stat-trend positive">Warga Binaan</span>
         </div>
         <span class="stat-label">Ibu Hamil</span>
-        <strong class="stat-number" style="color: #db2777;">{{ $ibuHamilCount }}</strong>
+        <strong id="rt-kader-ibu-hamil" class="stat-number" style="color: #db2777;">{{ $ibuHamilCount }}</strong>
         <span class="stat-description">Sasaran terpantau</span>
     </div>
 
@@ -49,7 +49,7 @@
             <span class="stat-trend" style="background: #fee2e2; color: #dc2626;">Screening AI</span>
         </div>
         <span class="stat-label">🔴 Risiko Stunting</span>
-        <strong class="stat-number" style="color: #dc2626;">{{ $risikoStuntingCount }}</strong>
+        <strong id="rt-kader-stunting" class="stat-number" style="color: #dc2626;">{{ $risikoStuntingCount }}</strong>
         <span class="stat-description">Balita terindikasi risiko</span>
     </div>
 
@@ -59,7 +59,7 @@
             <span class="stat-trend" style="background: #fef3c7; color: #d97706;">Action Needed</span>
         </div>
         <span class="stat-label">⚠️ Perlu Follow Up</span>
-        <strong class="stat-number" style="color: #d97706;">{{ $totalFollowUp }}</strong>
+        <strong id="rt-kader-followup" class="stat-number" style="color: #d97706;">{{ $totalFollowUp }}</strong>
         <span class="stat-description">Total sasaran intervensi</span>
     </div>
 </div>

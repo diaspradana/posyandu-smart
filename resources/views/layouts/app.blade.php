@@ -384,13 +384,26 @@
 
             </div>
 
-            <div class="topbar-actions">
+            <div class="topbar-actions" style="display: flex; align-items: center; gap: 12px;">
 
-                <button class="notification-button">
-                    ♧
+                {{-- REALTIME SYNC BADGE --}}
+                <div style="display: flex; align-items: center; gap: 6px; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 4px 10px; border-radius: 20px; font-size: 11px; color: #065f46; font-weight: 600;" title="Sistem tersinkronisasi otomatis secara realtime">
+                    <span id="realtime-sync-pulse" style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);"></span>
+                    <span style="letter-spacing: 0.3px;">Live Realtime</span>
+                </div>
 
-                    <span class="notification-dot"></span>
-                </button>
+                {{-- QUICK ROLE SWITCHER / DUAL TAB TESTER --}}
+                @if(auth()->user()->isAdmin())
+                    <a href="{{ route('switch.role', 'kader') }}" target="_blank" class="button secondary small" style="font-size: 11.5px; padding: 5px 10px; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155;" title="Buka Sesi Kader di Tab / Window Sebelah">
+                        <span>👥</span>
+                        <span>Buka Sesi Kader ↗</span>
+                    </a>
+                @else
+                    <a href="{{ route('switch.role', 'admin') }}" target="_blank" class="button secondary small" style="font-size: 11.5px; padding: 5px 10px; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155;" title="Buka Sesi Admin di Tab / Window Sebelah">
+                        <span>🏥</span>
+                        <span>Buka Sesi Admin ↗</span>
+                    </a>
+                @endif
 
                 <div class="topbar-user">
 
@@ -451,6 +464,7 @@
 </div>
 
 <script src="{{ asset('js/dashboard.js') }}"></script>
+<script src="{{ asset('js/realtime-sync.js') }}"></script>
 
 @yield('scripts')
 

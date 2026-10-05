@@ -33,7 +33,7 @@
             <span class="stat-trend positive">Wilayah</span>
         </div>
         <span class="stat-label">Total Tapos</span>
-        <strong class="stat-number">{{ $totalTapos }}</strong>
+        <strong id="rt-total-tapos" class="stat-number">{{ $totalTapos }}</strong>
         <span class="stat-description">Tapos binaan aktif</span>
     </div>
 
@@ -43,7 +43,7 @@
             <span class="stat-trend positive">Total</span>
         </div>
         <span class="stat-label">Total Balita</span>
-        <strong class="stat-number">{{ $totalBalita }}</strong>
+        <strong id="rt-total-balita" class="stat-number">{{ $totalBalita }}</strong>
         <span class="stat-description">Balita terdaftar</span>
     </div>
 
@@ -53,7 +53,7 @@
             <span class="stat-trend positive">Total</span>
         </div>
         <span class="stat-label">Total Ibu Hamil</span>
-        <strong class="stat-number">{{ $totalIbuHamil }}</strong>
+        <strong id="rt-total-ibu-hamil" class="stat-number">{{ $totalIbuHamil }}</strong>
         <span class="stat-description">Ibu hamil terpantau</span>
     </div>
 
@@ -63,8 +63,8 @@
             <span class="stat-trend" style="background:#fee2e2; color:#dc2626;">AI Screening</span>
         </div>
         <span class="stat-label">Risiko Balita</span>
-        <strong class="stat-number" style="color:#dc2626;">{{ $balitaStuntingCount }}</strong>
-        <span class="stat-description">{{ $balitaPemantauanCount }} butuh pemantauan</span>
+        <strong id="rt-balita-stunting" class="stat-number" style="color:#dc2626;">{{ $balitaStuntingCount }}</strong>
+        <span id="rt-balita-pemantauan-sub" class="stat-description">{{ $balitaPemantauanCount }} butuh pemantauan</span>
     </div>
 
     <div class="stat-card" style="border-left: 4px solid #f97316;">
@@ -73,17 +73,17 @@
             <span class="stat-trend" style="background:#ffedd5; color:#ea580c;">Maternal</span>
         </div>
         <span class="stat-label">Risiko Ibu Hamil</span>
-        <strong class="stat-number" style="color:#ea580c;">{{ $ibuHamilHighCount }}</strong>
-        <span class="stat-description">{{ $ibuHamilMediumCount }} risiko sedang</span>
+        <strong id="rt-ibu-hamil-high" class="stat-number" style="color:#ea580c;">{{ $ibuHamilHighCount }}</strong>
+        <span id="rt-ibu-hamil-medium-sub" class="stat-description">{{ $ibuHamilMediumCount }} risiko sedang</span>
     </div>
 
     <div class="stat-card" style="border-left: 4px solid #3b82f6;">
         <div class="stat-card-top">
             <div class="stat-icon blue" style="background:#dbeafe; color:#2563eb;">🛡️</div>
-            <span class="stat-trend {{ $pendingValidationCount > 0 ? 'negative' : 'positive' }}">{{ $pendingValidationCount > 0 ? 'Perlu Review' : 'Up to Date' }}</span>
+            <span id="rt-pending-trend" class="stat-trend {{ $pendingValidationCount > 0 ? 'negative' : 'positive' }}">{{ $pendingValidationCount > 0 ? 'Perlu Review' : 'Up to Date' }}</span>
         </div>
         <span class="stat-label">Menunggu Validasi</span>
-        <strong class="stat-number" style="color:#2563eb;">{{ $pendingValidationCount }}</strong>
+        <strong id="rt-pending-validation" class="stat-number" style="color:#2563eb;">{{ $pendingValidationCount }}</strong>
         <span class="stat-description">Pemeriksaan dari Kader</span>
     </div>
 </div>
@@ -153,25 +153,25 @@
                 </thead>
                 <tbody>
                     @forelse($monitoringTapos as $t)
-                        <tr>
+                        <tr id="tapos-row-{{ $t['id'] }}">
                             <td>
                                 <strong>{{ $t['nama'] }}</strong>
                                 <div style="font-size: 11px; color: #64748b;">{{ $t['kode'] }}</div>
                             </td>
-                            <td>{{ $t['balita'] }}</td>
-                            <td>{{ $t['bumil'] }}</td>
+                            <td class="tapos-balita-count">{{ $t['balita'] }}</td>
+                            <td class="tapos-bumil-count">{{ $t['bumil'] }}</td>
                             <td>
                                 @if($t['stunting_risk'] > 0)
-                                    <span class="status-pill danger" style="font-size: 11px;">🔴 {{ $t['stunting_risk'] }} Risiko</span>
+                                    <span class="status-pill danger" style="font-size: 11px;">🔴 <span class="tapos-stunting-count">{{ $t['stunting_risk'] }}</span> Risiko</span>
                                 @elseif($t['pemantauan'] > 0)
-                                    <span class="status-pill warning" style="font-size: 11px;">🟡 {{ $t['pemantauan'] }} Pantau</span>
+                                    <span class="status-pill warning" style="font-size: 11px;">🟡 <span class="tapos-pemantauan-count">{{ $t['pemantauan'] }}</span> Pantau</span>
                                 @else
                                     <span class="status-pill success" style="font-size: 11px;">🟢 Aman</span>
                                 @endif
                             </td>
                             <td>
                                 @if($t['high_risk_bumil'] > 0)
-                                    <span class="status-pill danger" style="font-size: 11px;">🔴 {{ $t['high_risk_bumil'] }} High</span>
+                                    <span class="status-pill danger" style="font-size: 11px;">🔴 <span class="tapos-highrisk-count">{{ $t['high_risk_bumil'] }}</span> High</span>
                                 @else
                                     <span class="status-pill success" style="font-size: 11px;">🟢 Normal</span>
                                 @endif
@@ -256,7 +256,7 @@
 
         <div style="margin-top: 16px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
             <a href="{{ route('admin.validasi.index') }}" class="button primary" style="width: 100%; justify-content: center; display: flex;">
-                🛡️ Buka Antrean Validasi Pemeriksaan ({{ $pendingValidationCount }})
+                🛡️ Buka Antrean Validasi Pemeriksaan
             </a>
         </div>
     </div>
@@ -324,5 +324,27 @@ function showTaposDetail(data) {
 function closeTaposModal() {
     document.getElementById('taposModal').style.display = 'none';
 }
+
+// Real-time table updater
+window.addEventListener('posyandu:sync', function(e) {
+    const data = e.detail;
+    if (!data || !data.admin_stats) return;
+
+    if (data.admin_stats.monitoring_tapos) {
+        data.admin_stats.monitoring_tapos.forEach(t => {
+            const row = document.getElementById('tapos-row-' + t.id);
+            if (row) {
+                const balitaEl = row.querySelector('.tapos-balita-count');
+                const bumilEl = row.querySelector('.tapos-bumil-count');
+                const stuntingEl = row.querySelector('.tapos-stunting-count');
+                const highRiskEl = row.querySelector('.tapos-highrisk-count');
+                if (balitaEl) balitaEl.textContent = t.balita;
+                if (bumilEl) bumilEl.textContent = t.bumil;
+                if (stuntingEl) stuntingEl.textContent = t.stunting_risk;
+                if (highRiskEl) highRiskEl.textContent = t.high_risk_bumil;
+            }
+        });
+    }
+});
 </script>
 @endsection

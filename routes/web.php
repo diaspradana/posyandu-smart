@@ -9,12 +9,13 @@ use App\Http\Controllers\TaposController;
 use App\Http\Controllers\BalitaController;
 use App\Http\Controllers\IbuHamilController;
 use App\Http\Controllers\KaderController;
+use App\Http\Controllers\RealtimeSyncController;
 use App\Http\Controllers\Admin\JadwalAdminController;
 use App\Http\Controllers\Admin\ValidasiPemeriksaanController;
 
 /*
 |--------------------------------------------------------------------------
-| Landing Page
+| Landing Page & Realtime Sync API
 |--------------------------------------------------------------------------
 */
 
@@ -22,11 +23,18 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
+Route::get('/api/realtime-sync', [RealtimeSyncController::class, 'sync'])->name('api.realtime.sync');
+
 /*
 |--------------------------------------------------------------------------
-| Authentication
+| Authentication & Role Switcher
 |--------------------------------------------------------------------------
 */
+
+Route::get('/switch-role/{role}', [
+    AuthController::class,
+    'switchRole'
+])->name('switch.role');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [
